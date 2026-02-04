@@ -77,6 +77,7 @@ CCI's xG Testbed documentation
    :caption: O-RAN OTIC Washington DC Metro Area
 
    otic
+   badges
 
 .. .. toctree::
 ..    :maxdepth: 1
@@ -125,12 +126,6 @@ CCI's xG Testbed documentation
    :caption: Partnerships
 
    partnerships
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Certifications/Badges
-
-   badges
 
 .. toctree::
    :maxdepth: 1
