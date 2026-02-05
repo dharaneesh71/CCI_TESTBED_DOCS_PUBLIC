@@ -41,7 +41,7 @@ Before starting the experiment, ensure the following prerequisites are met:
    - A working Python 3.7+ environment (Anaconda or venv recommended)
 
 2. **Required Python Packages:**
-   - clearml, tensorflow, keras, numpy, pandas, scikit-learn, matplotlib, seaborn, datasets (HuggingFace)
+   - Python packages mentioned in requirements.txt (mentioned below in step 1) installed via pip
 
 3. **ClearML Server Access:**
    - Access to a running ClearML server (local or remote/cloud) and valid credentials. ClearML Web UI for experiment and dataset management
@@ -65,6 +65,7 @@ Step 1: Clone the GitHub repository and verify the expected folder structure.
    # Clone your repo that contains the dataset and helper scripts
    git clone https://github.com/CCI-xGTestbed/clearml_experiments_dataset.git
    cd  clearml_experiments_dataset
+   pip install -r requirements.txt
 
 Step 2: Upload the dataset to ClearML Datasets for versioned access.
 
@@ -74,7 +75,7 @@ Step 2: Upload the dataset to ClearML Datasets for versioned access.
    # Adjust arguments to match your script, project, and dataset names
    python data-upload.py 
 
-Step 3: Set random seeds for reproducibility and suppress warnings for cleaner output.
+Step 3: Create a train.py file (make sure it is not a notebook file and just a plain python file). Set random seeds for reproducibility and suppress warnings for cleaner output.
 
 .. code-block:: python
 
@@ -104,6 +105,8 @@ Step 4: Import required libraries for data handling, visualization, and machine 
    from tensorflow.keras.optimizers import SGD, Adam, RMSprop
    from tensorflow.keras.callbacks import LearningRateScheduler, History, EarlyStopping
    from plot_keras_history import plot_history
+   from keras import Sequential
+   from keras.layers import Dense
 
 ClearML Task Initialization and Dataset Loading
 ----------------------------------------------
