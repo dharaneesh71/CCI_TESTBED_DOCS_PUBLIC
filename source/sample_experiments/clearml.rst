@@ -75,7 +75,14 @@ Step 2: Upload the dataset to ClearML Datasets for versioned access.
    # Adjust arguments to match your script, project, and dataset names
    python data-upload.py 
 
-Step 3: Create a train.py file (make sure it is not a notebook file and just a plain python file). Set random seeds for reproducibility and suppress warnings for cleaner output.
+Step 3: Create a new Python file for the training script.
+
+.. code-block:: bash
+   
+   # Create a train.py file (make sure it is not a notebook file and just a plain python file).
+   nano train.py
+
+Step 4: Set random seeds for reproducibility and import required libraries for data handling, visualization, and machine learning.
 
 .. code-block:: python
 
@@ -84,8 +91,6 @@ Step 3: Create a train.py file (make sure it is not a notebook file and just a p
    import tensorflow
    from tensorflow import keras
    tensorflow.random.set_seed(0)
-
-Step 4: Import required libraries for data handling, visualization, and machine learning.
 
 .. code-block:: python
 
