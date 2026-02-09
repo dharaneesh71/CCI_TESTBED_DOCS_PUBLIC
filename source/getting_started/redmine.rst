@@ -5,7 +5,7 @@ Redmine Access Guide
 This guide provides detailed information about accessing and using the CCI xG Testbed Redmine project management system.
 
 What is Redmine?
----------------
+----------------
 
 Redmine is a flexible project management and issue tracking system used by the CCI xG Testbed to:
 

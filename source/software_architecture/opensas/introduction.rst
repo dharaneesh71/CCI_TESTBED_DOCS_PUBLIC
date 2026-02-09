@@ -179,7 +179,7 @@ Finally, before starting the server, install all the requirements (packages) by 
 
    pip3 install -r requirements.txt
 
-- This will install all the required packages such as `requests`, `python-engine.io`. For the communication between the frontend and core to work, the `python-socketio` and `vue-socket.io` versions should be compatible. The versions specified in the `requirements.txt` are tested to be compatible.
+- This will install all the required packages, such as 'requests' and 'python-engine.io'. For communication between the 'frontend' and the 'core' to work correctly, the 'python-socketio' and 'vue-socket.io' versions must be compatible. The versions specified in 'requirements.txt' have been tested on 'Ubuntu 20.04' and 'Ubuntu 22.04'; however, version mismatches may occur if other applications install conflicting dependency versions. If a version conflict occurs in any required package, it will be reported when starting the 'OpenSAS server' and must be resolved before proceeding.
 
 .. figure:: ../../_static/opensas/image3.png
    :align: center
