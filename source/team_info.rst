@@ -243,7 +243,7 @@ The Technical Team includes doctoral students and a subset of master's researche
 |
 |
 
-.. figure:: _static/Dharaneesh_pic.jpeg
+.. figure:: _static/Dharaneesh_Pic.jpeg
    :alt: Dharaneesh C.K.V
    :align: left
    :width: 200px
