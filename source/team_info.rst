@@ -243,15 +243,15 @@ The Technical Team includes doctoral students and a subset of master's researche
 |
 |
 
-.. figure:: _static/ShubamNew.png
-   :alt: Shubam khantwal
+.. figure:: _static/Dharaneesh_pic.jpeg
+   :alt: Dharaneesh C.K.V
    :align: left
    :width: 200px
    :height: 230px
 
-- **Name:** Shubam khantwal  
+- **Name:** Dharaneesh C.K.V  
 - **Role:** Research Intern   
-- **Focus:** Deployment of cloud solutions and support for proof-of-concept development
+- **Focus:** Focuses on Fullstack Development and Website Management
 - **Report To:** Dr Aloizio Da Silva 
 |
 |
@@ -540,7 +540,18 @@ Alumni and Former Students
       | Name: `Mayukh Chowdhury <https://www.linkedin.com/in/mayukh-roy-chowdhury-ph-d-48830442/>`_
       | Role: Postdoc Researcher
 
+.. container:: person-profile
 
+
+   .. figure:: _static/ShubamNew.png
+       :alt: Shubam khantwal
+       :width: 300px
+       :height: 200px 
+       :target: https://www.linkedin.com/in/shubam-khantwal/
+   .. container:: person-info
+
+      | Name: `Shubam Khantwal <https://www.linkedin.com/in/shubam-khantwal/>`_
+      | Role: Research Intern
 
 
 |
