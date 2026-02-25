@@ -17,6 +17,8 @@ The CCI xG Testbed collaborates with industry leaders to advance research and de
      <img src="_static/Keysight_logo.png" alt="Keysight Logo" style="max-height: 90px; max-width: 220px;">
      <img src="_static/Ercisson_logo.png" alt="Ericsson Logo" style="max-height: 90px; max-width: 220px;">
      <img src="_static/InterDigital_logo.png" alt="InterDigital Logo" style="max-height: 90px; max-width: 220px;">
+     <img src="_static/Anspect.png" alt="ANspect Logo" style="max-height: 90px; max-width: 220px;">
+     <img src="_static/srs.png" alt="srs Logo" style="max-height: 90px; max-width: 220px;">
    </div>
 
 

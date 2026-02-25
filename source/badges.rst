@@ -1,5 +1,5 @@
-Badges
-======
+Certifications/Badges
+=====================
 
 This page lists certifications and achievement badges relevant to the CCI xG Testbed.
 
