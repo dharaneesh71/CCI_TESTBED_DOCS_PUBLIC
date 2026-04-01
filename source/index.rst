@@ -19,9 +19,8 @@ CCI's xG Testbed documentation
    :caption: Getting Started
 
    Getting Started <getting_started/user_access>
-   OpenStack Guide <getting_started/openstack>
-   OpenStack Guide V1 <getting_started/openstack_v1>
-   OpenStack Guide V2 <getting_started/openstack_v2>
+   
+   OpenStack Guide <getting_started/openstack_v2>
    Redmine Guide <getting_started/redmine>
 
 .. .. toctree::
@@ -35,7 +34,6 @@ CCI's xG Testbed documentation
    :caption: Software Architecture
 
    software_architecture/opensas/introduction
-   software_architecture/openstack/openstack
    software_architecture/oran/non-rt
    software_architecture/oran/near-rt
    software_architecture/oran/rat
@@ -61,11 +59,7 @@ CCI's xG Testbed documentation
 ..    opensas/experiments
 ..    opensas/references
 
-.. .. toctree::
-..    :maxdepth: 1
-..    :caption: OpenStack
-
-..    openstack
+        
 
 .. .. toctree::
 ..    :maxdepth: 1
