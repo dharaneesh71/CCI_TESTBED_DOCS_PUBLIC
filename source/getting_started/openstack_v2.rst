@@ -19,7 +19,7 @@ Tutorial videos
        <source src="/_static/Compute.mp4" type="video/mp4">
        Your browser does not support the video tag.
      </video>
-     <p><a href="/_static/Compute.mp4">Download video (MP4)</a></p>
+     <p><a href="/_static/Compute.mp4">Download video</a></p>
 
      <h3>How to Associate a Floating IP</h3>
      <video controls width="640">
@@ -27,14 +27,14 @@ Tutorial videos
        <source src="/_static/Floating-IP.mov" type="video/quicktime">
        Your browser does not support the video tag.
      </video>
-     <p><a href="/_static/floating_ip.mp4">Download MP4</a> • <a href="/_static/Floating-IP.mov">Download MOV</a></p>
-
+     <p><a href="/_static/floating_ip.mp4">Download video</a>
+     
      <h3>How to Create a Radio Node</h3>
      <video controls width="640">
        <source src="/_static/Radio-Instance.mp4" type="video/mp4">
        Your browser does not support the video tag.
      </video>
-     <p><a href="/_static/Radio-Instance.mp4">Download video (MP4)</a></p>
+     <p><a href="/_static/Radio-Instance.mp4">Download video</a></p>
    </div>
 
 
