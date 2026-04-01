@@ -23,10 +23,10 @@ Tutorial videos
 
      <h3>How to Associate a Floating IP</h3>
      <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
-       <source src="../_static/floating_ip.mp4" type="video/mp4">
+       <source src="../_static/Floating_IP.mp4" type="video/mp4">
        Your browser does not support the video tag.
      </video>
-     <p><a href="../_static/floating_ip.mp4">Download video</a></p>
+     <p><a href="../_static/Floating_IP.mp4">Download video</a></p>
 
      <h3>How to Create a Radio Node</h3>
      <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
