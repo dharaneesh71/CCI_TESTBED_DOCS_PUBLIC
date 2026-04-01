@@ -8,6 +8,34 @@ This guide details the standard procedure for deploying a virtual machine (VM) i
    :local:
    :depth: 2
 
+Tutorial videos
+-----------
+
+.. raw:: html
+
+   <div class="demo-videos">
+     <h3>How to Create a Compute Node</h3>
+     <video controls width="640">
+       <source src="/_static/Compute.mp4" type="video/mp4">
+       Your browser does not support the video tag.
+     </video>
+     <p><a href="/_static/Compute.mp4">Download video (MP4)</a></p>
+
+     <h3>How to Associate a Floating IP</h3>
+     <video controls width="640">
+       <source src="/_static/floating_ip.mp4" type="video/mp4">
+       <source src="/_static/Floating-IP.mov" type="video/quicktime">
+       Your browser does not support the video tag.
+     </video>
+     <p><a href="/_static/floating_ip.mp4">Download MP4</a> • <a href="/_static/Floating-IP.mov">Download MOV</a></p>
+
+     <h3>How to Create a Radio Node</h3>
+     <video controls width="640">
+       <source src="/_static/Radio-Instance.mp4" type="video/mp4">
+       Your browser does not support the video tag.
+     </video>
+     <p><a href="/_static/Radio-Instance.mp4">Download video (MP4)</a></p>
+   </div>
 
 
 

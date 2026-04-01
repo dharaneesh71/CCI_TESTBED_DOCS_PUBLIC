@@ -56,7 +56,7 @@ The following frequency bands are restricted and should not be used without prop
 | 13.36-13.41         |                       |                    |                  |
 +---------------------+-----------------------+--------------------+------------------+
 
-Notable common allocations:
+Additional restricted bands include:
 
 - 2414-2484 MHz — covers all 2.4 GHz Wi‑Fi
 - 3550-3700 MHz — covers all CBRS Band 48
