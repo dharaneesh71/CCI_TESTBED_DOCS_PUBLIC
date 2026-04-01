@@ -23,7 +23,7 @@ Tutorial videos
 
      <h3>How to Associate a Floating IP</h3>
      <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
-       <source src="../_static/Floating-IP.mov" type="video/mp4">
+       <source src="../_static/Floating-IP.mov" type="video/mov">
        Your browser does not support the video tag.
      </video>
      <p><a href="../_static/Floating-IP.mov">Download video</a></p>
