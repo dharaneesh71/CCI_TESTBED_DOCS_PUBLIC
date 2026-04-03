@@ -13,8 +13,18 @@ mmWave
 --------
 Millimeter Wave (mmWave) technology operates in frequency bands from 24 GHz to 100 GHz, providing significantly higher bandwidth and data rates for 5G networks. This technology enables ultra-high-speed wireless communications with reduced latency, though it faces challenges with signal propagation, requiring dense network deployments and advanced beamforming techniques to overcome limited range and penetration capabilities.
 
-Restricted/Frequency Bands
---------------------------
+Frequency Bands
+---------------
+
+Available Bands
+----------------
+
+All the frequency bands that are not mentioned in the table below are available for use. However, users should always ensure compliance with local regulations and guidelines when operating in these bands.
+
+Also we have CBRS access band 3500-3700 MHz — Band 48 (PAL Licenses)
+
+Restricted Bands
+----------------
 
 The following frequency bands are restricted and should not be used without proper authorization:
 
@@ -59,5 +69,4 @@ The following frequency bands are restricted and should not be used without prop
 Additional restricted bands include:
 
 - 2414-2484 MHz — covers all 2.4 GHz Wi‑Fi
-- 3550-3700 MHz — covers all CBRS Band 48
 - 5150-5850 MHz — covers all 5 GHz Wi‑Fi
