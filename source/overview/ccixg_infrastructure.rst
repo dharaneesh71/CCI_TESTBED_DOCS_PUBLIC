@@ -62,6 +62,29 @@ These labs complement each other to realize the OTIC services, with the xG Testb
 
 The OTIC focuses on performance, conformance, interoperability, and security testing. It is enriched with an end-to-end testing workflow composed of core testing components from Keysight and Rohde & Schwarz, resulting in an integrated solution for testing according to O-RAN Alliance specified processes and procedures.
 
+
+Amari Callbox Access
+--------------------
+
+1. Fill out the `open-source resource request form <https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=hGiVYK0Q-kCGPU8yweOjeves3pGeSfBMi39PzFgNnERUOTRVN0VPVzBHVDNFOUI1QUJNMzZQTVU0VCQlQCN0PWcu>`_.
+   When filling out the form, choose the "Amari Callbox" option.
+
+2. After approval, the user will be given an AnyDesk ID to access the machine that is directly connected to the Amari Callbox. 
+   The user will be given credentials for the machine as well.
+
+3. Through the remote access via AnyDesk, SSH into the Amari Callbox. 
+   SSH credentials will be given to the user for access. 
+   
+   Format::
+
+       ssh username@hostname
+
+   * If logging in for the first time, it'll prompt you to type yes/no, type ``yes`` (or ``y``).
+   * A prompt for the password will show up, type the password (case-sensitive).
+
+4. From here the user will access the Amari Callbox and do whatever research they desire.
+
+
 Unique Characteristics
 ---------------------
 
