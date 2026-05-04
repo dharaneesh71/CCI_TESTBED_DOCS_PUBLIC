@@ -211,6 +211,9 @@ To verify the setup and access the instance terminal:
 13. GPU Instance Configuration (GPU Zones Only)
 -----------------------------------------------
 
+.. important::
+   Before creating a GPU instance or executing these steps, you must request a GPU flavor by specifying the required GPU version via a ticket to the admin team on Redmine.
+
 If you launched your instance in the ``gpu`` availability zone, you must perform additional configuration steps to expand your storage for large datasets, install the necessary NVIDIA drivers, and validate the hardware stability.
 
 13.1 GPU Driver Installation
