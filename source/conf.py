@@ -18,7 +18,8 @@ graphviz_dot = r'C:\Program Files\Graphviz\bin\dot.exe'
 
 
 extensions = [
-    'sphinx.ext.graphviz'
+    'sphinx.ext.graphviz',
+    "sphinx_copybutton",
 ]
 
 
@@ -46,3 +47,4 @@ html_css_files = ['width.css']
 html_css_files = [
     'custom.css',
 ]
+

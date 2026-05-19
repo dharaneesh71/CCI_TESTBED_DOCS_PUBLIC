@@ -20,7 +20,7 @@ CCI's xG Testbed documentation
 
    Getting Started <getting_started/user_access>
    
-   OpenStack Guide <getting_started/openstack_v2>
+   OpenStack Guide <getting_started/openstack_v3>
    Redmine Guide <getting_started/redmine>
 
 .. .. toctree::
