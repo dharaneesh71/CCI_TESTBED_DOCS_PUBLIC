@@ -525,3 +525,46 @@ Once connected, verify networking and SDR connectivity:
    :ref:`Section 1 <radio-deployment>`. If it returns nothing, confirm the
    booking is still active in **My Reservations** and that your VM is in
    the ``radio`` availability zone.
+
+
+=================
+Volume Management
+=================
+
+Creating a Volume
+-----------------
+
+1. Navigate to the left-hand sidebar and select **Volumes**, then click on
+   **Volumes** from the dropdown.
+2. Click the **+ Create Volume** button located near the top right of the
+   dashboard.
+3. Provide a name for the volume in the designated field.
+4. Select your **Volume Source**. If you are building from a backup like
+   in the video, select **Volume Snapshot** and choose the specific
+   snapshot from the dropdown.
+5. Specify the desired capacity in the **Size (GiB)** field (e.g., ``128``).
+6. Click the blue **Create Volume** button to initialize the storage.
+
+
+Extending a Volume (Increasing Size)
+------------------------------------
+
+1. From the **Volumes** list, locate the specific volume you want to
+   resize.
+2. Click the dropdown arrow next to **Edit Volume** in the **Actions**
+   column.
+3. Select **Extend Volume** from the menu.
+4. Enter the new, larger capacity in the **New Size (GiB)** field (for
+   example, upgrading from ``32`` to ``128``).
+5. Click **Extend Volume** to apply the new size limit.
+
+
+Attaching a Volume (Connecting to an Instance)
+----------------------------------------------
+
+1. From the **Volumes** list, locate the volume you want to connect.
+2. Click the dropdown arrow in the **Actions** column for that volume.
+3. Select **Manage Attachments**.
+4. Choose the target instance from the dropdown menu where you want the
+   volume mounted.
+5. Click **Attach Volume** to link the storage to your virtual machine.
