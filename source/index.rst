@@ -21,6 +21,7 @@ CCI's xG Testbed documentation
    Getting Started <getting_started/user_access>
    OpenStack Guide <getting_started/openstack_v3>
    Redmine Guide <getting_started/redmine>
+   GitLab Guide <getting_started/gitlab>
 
 .. .. toctree::
 ..    :maxdepth: 9
