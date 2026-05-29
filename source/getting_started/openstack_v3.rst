@@ -35,6 +35,33 @@ When a new user is approved, they receive their login credentials via email.
    first login for production workloads.
 
 
+Setting Up Your Router and Network
+----------------------------------
+
+When you first get access to OpenStack, a brand-new project does not have any
+private network of its own. Before launching any instances, create your own
+network and a router that connects it to the external network.
+
+* **Create a Network**: Navigate to **Network → Networks** and click
+  **+ Create Network**. Give the network a name, then on the **Subnet** tab
+  define a subnet name and a private CIDR (e.g., ``192.168.10.0/24``) along
+  with a gateway IP. Enable **DHCP** on the **Subnet Details** tab.
+* **Create a Router**: Navigate to **Network → Routers** and click
+  **+ Create Router**. Give the router a name and set the **External Network**
+  to the provider/external network (e.g., ``Int/External-Network-Matrix25``).
+* **Add an Interface**: Open the newly created router, go to the
+  **Interfaces** tab, and click **+ Add Interface**. Select the subnet you
+  just created to connect your private network to the router.
+* **Verify the Topology**: Open **Network → Network Topology** to confirm that
+  your network is attached to the router and that the router is linked to the
+  external network.
+
+.. tip::
+
+   Once the router and network exist, they can be reused for every instance
+   you launch in the project — you only need to create them once.
+
+
 .. _compute-deployment:
 
 ===========================
@@ -50,13 +77,6 @@ Compute Instance Deployment
        Your browser does not support the video tag.
      </video>
      <p><a href="../_static/Compute.mp4">Download video</a></p>
-
-     <h3>How to Associate a Floating IP</h3>
-     <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
-       <source src="../_static/Floating-IP.mp4" type="video/mp4">
-       Your browser does not support the video tag.
-     </video>
-     <p><a href="../_static/Floating-IP.mp4">Download video</a></p>
    </div>
 
 
@@ -89,58 +109,6 @@ Compute Instance Deployment
    than a few minutes, check your project quotas on the Overview tab.
 
 
-2. Expanding Instance Storage
------------------------------
-
-If you launched with a disk size larger than the default Instance Snapshot,
-you must manually expand the storage:
-
-.. code-block:: bash
-
-   sudo apt update
-   sudo apt install -y cloud-guest-utils lvm2
-   sudo growpart /dev/vda 3
-   sudo pvresize /dev/vda3
-   sudo lvextend -r -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
-
-
-3. Network Connectivity & Security
-----------------------------------
-
-* **Floating IP**: Navigate to **Project → Compute → Instances**.
-  Click **Associate Floating IP** next to your instance. Click **+** to
-  allocate an IP from the ``Main-Internet-Network`` pool, then associate it.
-* **Security Rules**: Navigate to **Network → Security Groups** and click
-  **Manage Rules** for the ``default`` group. Add an **SSH** rule for the
-  ``0.0.0.0/0`` CIDR.
-
-.. warning::
-
-   Allowing SSH from ``0.0.0.0/0`` exposes port 22 to the entire internet.
-   For long-running instances, restrict the CIDR to a known IP range or use
-   a key pair instead of password authentication.
-
-
-4. Terminal Access & Verification
----------------------------------
-
-Use a gateway node to SSH into the floating IP (gateway credentials provided
-by admin):
-
-.. code-block:: bash
-
-   ssh ubuntu@[Floating_IP]
-
-* **Default Password**: ``CCI@2025``
-* **Verification Commands**:
-
-  .. code-block:: bash
-
-     ip a              # check assigned addresses
-     ping 8.8.8.8      # internet connectivity test
-     lsblk             # verify expanded block storage
-
-
 .. _gpu-deployment:
 
 =======================
@@ -162,7 +130,7 @@ GPU Instance Deployment
 
    Before creating a GPU instance, you must request a GPU flavor by
    specifying the required GPU version via a ticket to the admin team on
-   **Redmine**. Without an approved flavor, the launch step below will fail.
+   **Email**. Without an approved flavor, the launch step below will fail.
 
 
 1. Launch Procedure
@@ -187,40 +155,6 @@ GPU Instance Deployment
 * **Security Groups**: Allocate the ``default`` security group.
 * **Launch**: Click **Launch Instance** and wait for the status to change to
   ``Active``.
-
-
-2. Expanding Instance Storage
------------------------------
-
-.. code-block:: bash
-
-   sudo apt update
-   sudo apt install -y cloud-guest-utils lvm2
-   sudo growpart /dev/vda 3
-   sudo pvresize /dev/vda3
-   sudo lvextend -r -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
-
-
-3. Network Connectivity & Security
-----------------------------------
-
-* **Floating IP**: Navigate to **Project → Compute → Instances**. Click
-  **Associate Floating IP**. Allocate an IP from the
-  ``Main-Internet-Network`` pool, then associate it.
-* **Security Rules**: Navigate to **Network → Security Groups** and click
-  **Manage Rules** for the ``default`` group. Add an **SSH** rule for the
-  ``0.0.0.0/0`` CIDR.
-
-
-4. Terminal Access
-------------------
-
-SSH into the floating IP using the gateway node
-(``Username: ubuntu`` / ``Password: CCI@2025``):
-
-.. code-block:: bash
-
-   ssh ubuntu@[Floating_IP]
 
 
 5. GPU Configuration & Validation
@@ -479,8 +413,116 @@ Once your USRP is booked, launch the radio host instance:
   to ``Active``.
 
 
-3. Expanding Instance Storage
------------------------------
+5. Terminal Access & SDR Network Configuration
+----------------------------------------------
+
+Because the USRP nodes exist on an isolated private network, you must manually
+attach the radio network to your instance and configure the internal routing
+before you can interact with the SDR.
+
+.. important::
+
+   Terminal access to the radio host is over **ZeroTier**, not the floating
+   IP. Make sure the instance has joined the project's ZeroTier network and
+   that UDP port ``9993`` is allowed in the ``default`` security group (see
+   :ref:`Common Post-Launch Procedures → Network Connectivity & Security
+   <network-connectivity>`).
+
+**Step A: Attach the USRP Interface**
+
+1. In the OpenStack dashboard, navigate to **Project → Compute → Instances**.
+2. Click the dropdown arrow next to your Radio instance and select
+   **Attach Interface**.
+3. Change the "Way to specify an interface" dropdown to **by Port**.
+4. Select the specific USRP port you booked (e.g., ``USRP-110``) from the
+   dropdown list.
+5. Click **Attach Interface**.
+6. Check your Instances list. Your VM should now display two IP addresses
+   (e.g., your Demo Network IP and your USRP Network IP, such as
+   ``192.168.110.7``). Take note of this USRP IP address.
+
+**Step B: Configure Netplan (Terminal)**
+
+Connect to the instance over ZeroTier by SSHing to its ZeroTier-assigned IP
+(Username: ``ubuntu``, Password: ``CCI@2025``). Do not use the floating IP for
+terminal access.
+
+.. code-block:: bash
+
+   ssh ubuntu@[ZeroTier_IP]
+
+.. note::
+
+   If you cannot reach the ZeroTier IP, confirm both your machine and the
+   instance have joined the project's ZeroTier network and been authorized,
+   and that UDP port ``9993`` is open in the ``default`` security group.
+
+Once connected, configure Ubuntu to recognize the newly attached radio
+interface (usually ``ens4``).
+
+1. Run ``ip a`` to verify the new interface name. You should see ``ens4``
+   listed without an IP address.
+2. Open the network configuration file. The filename may vary — run
+   ``ls /etc/netplan/`` first, as it is often ``50-cloud-init.yaml`` on
+   cloud images:
+
+   .. code-block:: bash
+
+      sudo nano /etc/netplan/00-installer-config.yaml
+
+3. Add your ``ens4`` interface and the USRP IP address you noted from the
+   OpenStack dashboard (append ``/24`` to it). The file should look like this:
+
+   .. code-block:: yaml
+
+      network:
+        ethernets:
+          ens3:
+            dhcp4: true
+          ens4:
+            addresses: [192.168.110.7/24]
+        version: 2
+
+4. Save and exit the file (Ctrl+O, Enter, Ctrl+X).
+5. Apply the new network configuration:
+
+   .. code-block:: bash
+
+      sudo netplan apply
+
+**Step C: SDR Verification**
+
+Once the network is applied, verify connectivity to the USRP unit. The SDR is
+typically located at the ``.2`` address of your subnet (e.g., if your IP is
+``192.168.110.7``, the radio is at ``192.168.110.2``) — confirm the exact
+address for your booked node.
+
+.. code-block:: bash
+
+   ping 192.168.110.2     # verify reachability to the radio node
+   uhd_find_devices       # discover the booked USRP node
+
+.. note::
+
+   ``uhd_find_devices`` should list the USRP unit you reserved in
+   :ref:`Section 1 <radio-deployment>`. If it returns nothing, confirm your
+   booking is still active in the **My Reservations** tab of the SDR Booking
+   app, and verify that your netplan configuration has the correct IP address.
+
+
+=============================
+Common Post-Launch Procedures
+=============================
+
+The following procedures apply to **all** instance types (compute, GPU, and
+radio) once the VM is ``Active``.
+
+
+Expanding Instance Storage
+--------------------------
+
+If you launched with a disk size larger than the default Instance Snapshot,
+you must manually expand the storage:
 
 .. code-block:: bash
 
@@ -491,40 +533,61 @@ Once your USRP is booked, launch the radio host instance:
    sudo lvextend -r -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
 
 
-4. Network Connectivity & Security
-----------------------------------
+.. _network-connectivity:
 
-* **Floating IP**: Navigate to **Project → Compute → Instances**. Click
-  **Associate Floating IP**. Allocate an IP from the
-  ``Main-Internet-Network`` pool, then associate it.
+Network Connectivity & Security
+-------------------------------
+
 * **Security Rules**: Navigate to **Network → Security Groups** and click
   **Manage Rules** for the ``default`` group. Add an **SSH** rule for the
   ``0.0.0.0/0`` CIDR.
+* **Additional Protocols**: In the same ``default`` group, add any other
+  protocols your workload requires. For **ZeroTier** connectivity, add the
+  following rules:
 
+  * **Custom UDP Rule** — Port ``9993`` (ZeroTier's default transport port).
+  * **All ICMP** — to allow ``ping`` for reachability checks across the
+    ZeroTier network.
+  * Any application-specific ports your experiment needs (e.g., HTTP/HTTPS,
+    custom TCP/UDP ranges).
 
-5. Terminal Access & SDR Verification
--------------------------------------
+.. warning::
 
-Use a gateway node to SSH into the floating IP
-(``Username: ubuntu`` / ``Password: CCI@2025``):
-
-.. code-block:: bash
-
-   ssh ubuntu@[Floating_IP]
-
-Once connected, verify networking and SDR connectivity:
-
-.. code-block:: bash
-
-   ping 8.8.8.8          # internet connectivity
-   uhd_find_devices      # discover the booked USRP node
+   Allowing SSH from ``0.0.0.0/0`` exposes port 22 to the entire internet.
+   For long-running instances, restrict the CIDR to a known IP range or use
+   a key pair instead of password authentication.
 
 .. note::
 
-   ``uhd_find_devices`` should list the USRP unit you reserved in
-   :ref:`Section 1 <radio-deployment>`. If it returns nothing, confirm the
-   booking is still active in **My Reservations** and that your VM is in
-   the ``radio`` availability zone.
+   For **terminal access**, you must connect over **ZeroTier**. Join the
+   project's ZeroTier network on both your machine and the instance, then SSH
+   to the instance's ZeroTier-assigned IP rather than exposing port 22 to the
+   public internet. ZeroTier needs UDP port ``9993`` open (see the rules
+   above) to establish its overlay connection.
+
+
+Associating a Floating IP
+-------------------------
+
+.. raw:: html
+
+   <div class="demo-videos">
+     <h3>How to Associate a Floating IP</h3>
+     <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
+       <source src="../_static/Floating-IP.mp4" type="video/mp4">
+       Your browser does not support the video tag.
+     </video>
+     <p><a href="../_static/Floating-IP.mp4">Download video</a></p>
+   </div>
+
+A floating IP gives your instance a routable address on the external network
+so you can reach it from outside the project.
+
+* Navigate to the **Instances** tab and open the **Actions** dropdown for your
+  instance, then select **Associate Floating IP**.
+* If no address is available, click the **+** button to **Allocate IP** from
+  the external pool (e.g., ``Int/External-Network-Matrix25``).
+* Select the floating IP and the instance **Port**, then click **Associate**.
 
 
 =================
@@ -568,3 +631,30 @@ Attaching a Volume (Connecting to an Instance)
 4. Choose the target instance from the dropdown menu where you want the
    volume mounted.
 5. Click **Attach Volume** to link the storage to your virtual machine.
+
+
+==========================================
+Important Points to Consider in OpenStack
+==========================================
+
+* **Watch your quotas**: Instance, VCPU, RAM, and volume limits are shown on
+  the **Overview** tab. New instances will fail to create once a quota is hit.
+* **Create your network first**: A new project has no usable network until you
+  create your own network and router (see *Setting Up Your Router and
+  Network*).
+* **Choose the right availability zone**: ``compute`` for CPU workloads,
+  ``gpu`` for GPU/AI workloads, and ``radio`` for SDR/wireless workloads.
+* **Persistent vs ephemeral storage**: Set **Create New Volume = Yes** to keep
+  data across rebuilds; ephemeral disks are wiped when the instance is
+  deleted.
+* **Secure your access**: Avoid leaving SSH open to ``0.0.0.0/0``. Use
+  **ZeroTier** for terminal access and restrict security-group CIDRs to known
+  ranges or use key-pair authentication.
+* **GPU flavors need approval**: Request the GPU flavor from the admin team
+  before attempting a GPU launch, or the launch will fail.
+* **Book USRPs first**: A radio VM cannot reach an SDR unit that has not been
+  reserved for the matching time slot.
+* **Change default credentials**: Update the default snapshot password
+  (``CCI@2025``) on first login for any production workload.
+* **Free up resources**: Delete unused instances, volumes, and floating IPs to
+  stay within quota and free them for other project members.

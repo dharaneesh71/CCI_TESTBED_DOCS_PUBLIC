@@ -21,16 +21,19 @@ To gain access to the CCI xG Testbed, you need to complete the User Sign-up Form
 
 
 Once your submission is reviewed and approved, the Administrative team will send you an email 
-containing your access credentials:
+containing your access instructions. All CCI xG Testbed resources are centralized through our 
+Single Sign-On (SSO) portal.
 
-* **OpenStack Credentials**: For accessing the OpenStack dashboard and user environment.
-* **Gateway Credentials**: For secure access to the network gateway.
-* **Redmine Credentials**: For project management and support.
+**How to Access Your Dashboard:**
 
-For detailed information on using the Gateway and Redmine systems, please refer to our 
-:doc:`Gateway and Redmine Access Guide <gateway_and_redmine>`.
+1. **Navigate to the Portal**: Go to `https://authentik.ccixgtestbed.org <https://authentik.ccixgtestbed.org>`_.
+2. **Sign In**: You can authenticate using **CILogon** to securely sign in using your university or institutional identity provider.
+3. **Select Your Resources**: After successfully logging in, you will be taken to the "My applications" dashboard. This central hub displays tiles for all the specific environments, tools, and project platforms allocated to your account. Simply click on any tile to launch that resource.
 
-.. attention:: When completing the form, be specific about your project requirements in the "Purpose of CCI xG Testbed Usage" field to ensure that appropriate resources are allocated for your experiment.
+For detailed information on navigating the portal and utilizing your resources, please refer to our 
+:doc:`Portal Access Guide <portal_access>`.
+
+.. attention:: When completing the initial request form, be specific about your project requirements in the "Purpose of CCI xG Testbed Usage" field to ensure the appropriate resource tiles are allocated to your dashboard.
 
 CCI Dashboard and Experiment Environment
 =======================================
@@ -104,7 +107,7 @@ Once logged into the OpenStack Dashboard, you can:
 2. Configure networking for your experiment
 3. Allocate storage resources
 4. Deploy and run your experiment software
-5. Document your experiment setup, track issues, and manage your project timeline using Redmine (refer to our :doc:`Redmine Access Guide <gateway_and_redmine>` for detailed instructions)
+5. Document your experiment setup, track issues, and manage your project timeline using gitlab
 
 For detailed instructions on creating and managing OpenStack instances, please refer to our 
 :doc:`OpenStack Instance Launch Guide <openstack>`.
