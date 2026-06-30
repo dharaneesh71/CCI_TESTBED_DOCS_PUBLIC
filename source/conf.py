@@ -6,7 +6,6 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import sphinx_rtd_theme
-import shutil
 project = 'CCI_TESTBED_DOCS'
 copyright = '2024, TEAM'
 author = 'TEAM'
@@ -15,7 +14,7 @@ release = '1.0.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-graphviz_dot = shutil.which('dot') or r'C:\Program Files\Graphviz\bin\dot.exe'
+graphviz_dot = r'C:\Program Files\Graphviz\bin\dot.exe'
 
 
 extensions = [
