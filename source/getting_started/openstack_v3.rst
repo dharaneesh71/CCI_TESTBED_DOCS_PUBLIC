@@ -1,4 +1,4 @@
-===================================
+﻿===================================
 OpenStack Instance Deployment Guide
 ===================================
 
@@ -6,65 +6,232 @@ This guide details the standard procedure for deploying virtual machine (VM)
 instances through the project dashboard. The workflow is split into three
 sections based on the availability zone of the instance:
 
-* :ref:`compute-deployment` — standard CPU workloads.
-* :ref:`gpu-deployment` — GPU / AI workloads.
-* :ref:`radio-deployment` — wireless / SDR workloads (includes USRP booking).
+* :ref:`compute-deployment` - standard CPU workloads.
+* :ref:`gpu-deployment` - GPU / AI workloads.
+* :ref:`radio-deployment` - wireless / SDR workloads (includes USRP booking).
+
+Every user follows the same path: read :ref:`before-you-start`, log in, create
+your network and router **once**, set up :ref:`terminal-access`, then launch
+whichever instance type you need and finish with the
+:ref:`common post-launch steps <common-post-launch>`.
 
 .. contents::
    :local:
    :depth: 2
 
 
-New User Onboarding & Quotas
-----------------------------
+.. _before-you-start:
 
-When a new user is approved, they receive their login credentials via email.
+Before You Start
+=================
 
-* **Initial Login**: Users must enter their Username, Password, and the specific
-  Domain (e.g., ``default``) assigned by the OpenStack admin.
+Read this section before launching anything - these are the points that most
+often trip up new users.
+
+* **Create your network first**: A brand-new project has no usable network.
+  You must create your own network and router before any instance can be
+  launched (see :ref:`network-setup`). You only do this once per project.
+* **Choose the right availability zone**: ``compute`` for CPU workloads,
+  ``gpu`` for GPU/AI workloads, and ``radio`` for SDR/wireless workloads.
+* **Watch your quotas**: Instance, VCPU, RAM, and volume limits are shown on
+  the **Overview** tab. New instances will fail to create once a quota is hit.
+* **Terminal access is over ZeroTier**: There is no public SSH and no floating
+  IP. You reach every instance - compute, GPU, or radio - over the project's
+  ZeroTier network (see :ref:`terminal-access`).
+* **GPU flavors need approval**: Request the GPU flavor from the admin team
+  before attempting a GPU launch, or the launch will fail.
+* **Book USRPs first**: A radio VM cannot reach an SDR unit that has not been
+  reserved for the matching time slot.
+* **Persistent vs ephemeral storage**: Set **Create New Volume = Yes** to keep
+  data across rebuilds; ephemeral disks are wiped when the instance is deleted.
+* **Change default credentials**: Update the default image password
+  (``CCI@2025``) on first login for any production workload.
+* **Free up resources**: Delete unused instances and volumes to stay within
+  quota and free them for other project members.
+
+
+.. _onboarding:
+
+Onboarding & Logging In
+=======================
+
+New users do **not** receive login credentials by email. Access is granted
+through CILogon / authentik once your account is approved.
+
+* **Log in**: Open the OpenStack application from authentik. In the login
+  dropdown, choose **Authenticate with authentik**, then select the **domain**
+  named in your welcome email.
 * **Resource Quotas**: The **Overview** tab displays the project's limits.
   For example, a project may be restricted to 10 instances, 20 VCPUs, and
   50 GB of RAM.
-* **Quota Management**: Once these limits are reached, the system will prevent
-  the creation of new instances.
+* **Quota Management**: Once these limits are reached, the system prevents the
+  creation of new instances until you free resources.
 
 .. note::
 
-   Default SSH credentials for all Ubuntu-based snapshots in this guide are
-   ``Username: ubuntu`` / ``Password: CCI@2025``. Change the password on
-   first login for production workloads.
+   Default **image credentials** for all Ubuntu-based images in this guide are
+   ``Username: ubuntu`` / ``Password: CCI@2025``. These log you into the
+   instance itself - they are not OpenStack credentials and not SSH keys.
+   Change the password on first login for production workloads.
 
 
-Setting Up Your Router and Network
-----------------------------------
+.. _network-setup:
 
-When you first get access to OpenStack, a brand-new project does not have any
-private network of its own. Before launching any instances, create your own
-network and a router that connects it to the external network.
+Set Up Your Network and Router
+==============================
 
-* **Create a Network**: Navigate to **Network → Networks** and click
-  **+ Create Network**. Give the network a name, then on the **Subnet** tab
-  define a subnet name and a private CIDR (e.g., ``192.168.10.0/24``) along
-  with a gateway IP. Enable **DHCP** on the **Subnet Details** tab.
-* **Create a Router**: Navigate to **Network → Routers** and click
-  **+ Create Router**. Give the router a name and set the **External Network**
-  to the provider/external network (e.g., ``Int/External-Network-Matrix25``).
-* **Add an Interface**: Open the newly created router, go to the
-  **Interfaces** tab, and click **+ Add Interface**. Select the subnet you
-  just created to connect your private network to the router.
-* **Verify the Topology**: Open **Network → Network Topology** to confirm that
-  your network is attached to the router and that the router is linked to the
-  external network.
+A new project has no private network of its own. Before launching any
+instance, create one network and one router that bridges it to the provider
+network. **You only need to do this once per project** - the same network and
+router are reused by every instance you launch.
+
+Create a Network
+----------------
+
+Navigate to **Network → Networks** and click **+ Create Network**. The wizard
+has three tabs:
+
+* **Network** tab:
+
+  * **Network Name**: ``external-network-<firstname>`` (for example,
+    ``external-network-JohnDoe``).
+  * Leave **Enable Admin State** and **Create Subnet** checked.
+  * **MTU**: set to ``1450``.
+
+* **Subnet** tab:
+
+  * **Subnet Name**: ``external-subnet-<firstname>``.
+  * **Network Address Source**: keep **Enter Network Address manually**.
+  * **Network Address**: a private CIDR, for example ``10.120.0.0/24``.
+  * Leave **IP Version** as ``IPv4`` and leave **Gateway IP** blank to accept
+    the default (the first address in the range). Do not tick
+    **Disable Gateway**.
+
+* **Subnet Details** tab: enable **DHCP**, then click **Create**.
+
+Create a Router
+---------------
+
+Navigate to **Network → Routers** and click **+ Create Router**.
+
+* **Router Name**: give it a name (for example,
+  ``Internal-Project-<Firstname>-Router``).
+* Leave **Enable Admin State** checked.
+* **External Network**: select ``Main-Internet-Network``.
+* Click **Create Router**.
+
+Add an Interface
+----------------
+
+Connect your subnet to the router so your private network can reach the
+external network:
+
+1. From **Network → Routers**, click your newly created router to open it.
+2. Go to the **Interfaces** tab and click **+ Add Interface**.
+3. In the **Subnet** dropdown, select ``external-subnet-<firstname>``.
+4. Leave **IP Address (optional)** blank.
+5. Click **Submit**.
+
+The new internal interface appears in the list with a fixed IP and a status of
+``Active``.
+
+Verify the Topology
+-------------------
+
+Open **Network → Network Topology** to confirm the layout: your router should
+be linked to ``Main-Internet-Network`` on one side and to your
+``external-subnet-<firstname>`` on the other. Radio users will also see the
+USRP networks here once an interface is attached.
+
+.. note::
+
+   This section will be expanded with a walkthrough video.
 
 .. tip::
 
-   Once the router and network exist, they can be reused for every instance
-   you launch in the project — you only need to create them once.
+   Once the network and router exist, they are reused for every instance you
+   launch in the project - you only create them once.
+
+
+.. _terminal-access:
+
+Terminal Access (ZeroTier)
+==========================
+
+There is no public SSH access and no floating IP in this testbed. You reach
+**every** instance - compute, GPU, and radio - over the project's **ZeroTier**
+overlay network. You install and authorize ZeroTier once on your local machine
+and once on each instance.
+
+.. note::
+
+   The project's **16-digit ZeroTier network ID** and device authorization are
+   managed by the CCI admin team. Request the network ID and have your devices
+   authorized before you begin.
+
+Install ZeroTier
+----------------
+
+Install ZeroTier on **both** your local machine and the instance. For the
+instance, open a shell through the OpenStack dashboard **Console** (noVNC) tab
+for this one-time setup - after this you will connect over ZeroTier:
+
+.. code-block:: bash
+
+   curl -s https://install.zerotier.com | sudo bash
+   sudo systemctl enable --now zerotier-one
+
+Join the Project Network
+------------------------
+
+.. code-block:: bash
+
+   sudo zerotier-cli join <network-id>
+
+Replace ``<network-id>`` with the 16-digit hexadecimal ID from the admin team.
+
+Authorize the Device
+--------------------
+
+Print this device's 10-digit ID and send it to the admin team so they can
+authorize it on the ZeroTier controller:
+
+.. code-block:: bash
+
+   sudo zerotier-cli info
+
+Until the device is authorized, the network shows ``ACCESS_DENIED``.
+
+Confirm Your Assigned IP
+------------------------
+
+Once authorized, list your networks and note the assigned ZeroTier IP:
+
+.. code-block:: bash
+
+   sudo zerotier-cli listnetworks
+
+The network status changes to ``OK`` and an IP address is listed.
+
+Connect
+-------
+
+From your authorized local machine, SSH to the instance's ZeroTier IP using the
+image credentials (``ubuntu`` / ``CCI@2025``):
+
+.. code-block:: bash
+
+   ssh ubuntu@<instance-zerotier-ip>
+
+.. important::
+
+   ZeroTier needs **UDP port 9993** open and **ICMP** allowed in the
+   ``default`` security group. See
+   :ref:`Network Connectivity & Security <network-connectivity>`.
 
 
 .. _compute-deployment:
 
-===========================
 Compute Instance Deployment
 ===========================
 
@@ -79,28 +246,31 @@ Compute Instance Deployment
      <p><a href="../_static/Compute.mp4">Download video</a></p>
    </div>
 
+Launch Procedure
+----------------
 
-1. Launch Procedure
--------------------
-
-* Navigate to the **Project → Compute → Overview** dashboard.
-* Click the **Instances** tab in the left-hand sidebar, then click
-  **Launch Instance**.
+* Navigate to **Project → Compute → Instances** and click **Launch Instance**.
 * **Details**: Enter an Instance Name (e.g., ``test_compute``).
   Set the Availability Zone to ``compute``.
-* **Source**: Choose **Instance Snapshot** from the dropdown menu.
+* **Source**:
 
-  * Set **Create New Volume** to **No** (Ephemeral) for standard testing, or
-    **Yes** (Persistent) to save critical data to Cinder storage.
-  * Select your desired snapshot and click the **Up Arrow (↑)**.
+  * Set **Select Boot Source** to **Instance Snapshot** (or **Volume**, if you
+    are booting from a volume you created - see :ref:`volume-management`).
+  * Set **Create New Volume** to **No** (ephemeral, wiped on delete) for
+    standard testing, or **Yes** (persistent, saved to Cinder storage) to keep
+    critical data.
+  * Select your desired snapshot or volume and click the **Up Arrow (↑)** to
+    move it into **Allocated**.
 
 * **Flavor**: Choose a flavor (e.g., ``m4.4.32``) and click the
   **Up Arrow (↑)**.
-* **Networks**: Allocate the required network
-  (e.g., ``Int/External-Network-Matrix25``).
+* **Networks**: Allocate your own network, ``external-network-<firstname>``.
 * **Security Groups**: Allocate the ``default`` security group.
 * **Launch**: Click **Launch Instance** and wait for the status to change to
   ``Active`` and power state to ``Running``.
+
+Once the instance is active, set up :ref:`terminal-access` to get a shell, then
+see :ref:`common-post-launch` for storage and security steps.
 
 .. tip::
 
@@ -111,7 +281,6 @@ Compute Instance Deployment
 
 .. _gpu-deployment:
 
-=======================
 GPU Instance Deployment
 =======================
 
@@ -132,17 +301,14 @@ GPU Instance Deployment
    specifying the required GPU version via a ticket to the admin team on
    **Email**. Without an approved flavor, the launch step below will fail.
 
+Launch Procedure
+----------------
 
-1. Launch Procedure
--------------------
-
-* Navigate to the **Project → Compute → Overview** dashboard.
-* Click the **Instances** tab in the left-hand sidebar, then click
-  **Launch Instance**.
+* Navigate to **Project → Compute → Instances** and click **Launch Instance**.
 * **Details**: Enter an Instance Name (e.g., ``test_gpu``).
   Set the Availability Zone to ``gpu``.
-* **Source**: Choose **Instance Snapshot** from the dropdown menu. Select
-  your desired snapshot and click the **Up Arrow (↑)**.
+* **Source**: Choose **Instance Snapshot** from the dropdown menu (or a
+  **Volume** you created). Select your source and click the **Up Arrow (↑)**.
 
   .. note::
 
@@ -150,18 +316,20 @@ GPU Instance Deployment
      retain large datasets across instance rebuilds.
 
 * **Flavor**: Choose your approved GPU flavor and click the **Up Arrow (↑)**.
-* **Networks**: Allocate the required network
-  (e.g., ``Int/External-Network-Matrix25``).
+* **Networks**: Allocate your own network, ``external-network-<firstname>``.
 * **Security Groups**: Allocate the ``default`` security group.
 * **Launch**: Click **Launch Instance** and wait for the status to change to
   ``Active``.
 
+Once active, set up :ref:`terminal-access` to connect, then continue with the
+GPU configuration below.
 
-5. GPU Configuration & Validation
----------------------------------
 
-5.1 Install Drivers
-~~~~~~~~~~~~~~~~~~~
+GPU Configuration & Validation
+------------------------------
+
+Install Drivers
+~~~~~~~~~~~~~~~
 
 Install the kernel headers, build tools, and NVIDIA driver stack
 (version 535):
@@ -179,12 +347,12 @@ Install the kernel headers, build tools, and NVIDIA driver stack
 
 .. important::
 
-   The instance **must** reboot after driver installation. Reconnect via SSH
-   once it returns to ``Active``.
+   The instance **must** reboot after driver installation. Reconnect over
+   ZeroTier once it returns to ``Active``.
 
 
-5.2 Verify Drivers
-~~~~~~~~~~~~~~~~~~
+Verify Drivers
+~~~~~~~~~~~~~~
 
 After reconnecting, confirm the GPU is detected:
 
@@ -196,8 +364,8 @@ Expected output: a table listing the GPU model (e.g., Tesla V100), driver
 version 535.x, and CUDA version.
 
 
-5.3 Install PyTorch and Validate CUDA
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Install PyTorch and Validate CUDA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -217,8 +385,8 @@ Quick sanity check:
    PY
 
 
-5.4 GPU Stress Test
-~~~~~~~~~~~~~~~~~~~
+GPU Stress Test
+~~~~~~~~~~~~~~~
 
 Execute a 5-minute matrix multiplication loop to verify hardware stability:
 
@@ -252,12 +420,11 @@ In a second terminal, monitor utilization and check for hardware errors:
 
    A successful test returns **no output** from the ``xid`` grep, meaning
    zero Xid errors were detected. GPU utilization should stay between
-   90–100 % during the run.
+   90-100 % during the run.
 
 
 .. _radio-deployment:
 
-=========================
 Radio Instance Deployment
 =========================
 
@@ -274,9 +441,9 @@ Radio Instance Deployment
 
 Deploying a radio instance is a **two-stage process**:
 
-1. **Book a USRP** on the CCI xG Testbed booking portal (Section 1 below).
+1. **Book a USRP** on the CCI xG Testbed booking portal (see below).
 2. **Launch a Radio VM** in the ``radio`` availability zone to act as the
-   host for the booked USRP (Section 2 onward).
+   host for the booked USRP.
 
 .. important::
 
@@ -285,150 +452,154 @@ Deploying a radio instance is a **two-stage process**:
    reserved.
 
 
-1. Booking USRP Resources (SDR Booking)
----------------------------------------
+Booking USRP Resources (SDR Booking)
+------------------------------------
 
-This section walks through reserving — and cancelling — USRP nodes on the
-CCI xG Testbed SDR Booking portal.
+Reserve - and cancel - USRP nodes from the booking portal. The portal uses a
+tabbed layout: **Book USRP**, **My Reservations**, **USRP & GPU Access**,
+**OpenStack Quota**, and **Resources**.
 
 .. raw:: html
 
    <div class="demo-videos">
      <h3>How to Book a USRP</h3>
      <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
-       <source src="../_static/usrp-booking.mp4" type="video/mp4">
+       <source src="../_static/USRP-booking-new.mp4" type="video/mp4">
        Your browser does not support the video tag.
      </video>
-     <p><a href="../_static/usrp-booking.mp4">Download video</a></p>
+     <p><a href="../_static/USRP-booking-new.mp4">Download video</a></p>
    </div>
 
-**Prerequisites**
+Prerequisites
+~~~~~~~~~~~~~
 
-* Your CCI xG Testbed login credentials (email/username and password).
-* Your designated OpenStack project name (e.g., ``Internal-project-demo``).
+* An approved CCI xG account and your OpenStack project name
+  (e.g., ``External-Project-<firstname>``).
 
+Open the Booking Portal
+~~~~~~~~~~~~~~~~~~~~~~~
 
-1.1 Log In to the Portal
-~~~~~~~~~~~~~~~~~~~~~~~~
+Sign in to the CCI xG dashboard at https://authentik.ccixgtestbed.org/ and open
+the booking portal, then select the **Book USRP** tab (or click **Start
+booking** on the landing page).
 
-* Navigate to the **CCI xG Testbed** login page.
-* Enter your **Email/Username** and **Password**.
-* Click the blue **Log In** button.
+Validate Your OpenStack Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-1.2 Open the SDR Booking Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* After login, you land on the **My Applications** dashboard.
-* Click the **SDR Booking** tile to launch the booking system.
-
-
-1.3 Validate Your OpenStack Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A pop-up will appear prompting you to **Enter Your OpenStack Project**.
-
-* Type your designated project name (e.g., ``Internal-project-demo``).
-* Click **Validate** and wait for the green checkmark.
-* Click **Continue**.
+A pop-up prompts you to **Enter Your OpenStack Project**. Type your project
+name, click **Validate**, then **Continue**.
 
 .. note::
 
-   The project name is case-sensitive and must match the OpenStack project
-   exactly. If validation fails, double-check the name against your
-   OpenStack dashboard.
+   The project name is case-sensitive and must match your OpenStack project
+   exactly. If validation fails, double-check it against your OpenStack
+   dashboard. *(Screenshot showing where to find the project name to be
+   added.)*
 
+Select Date Range, Mode, and USRP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1.4 Select Date Range and Device
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+On the **Book USRP** page, under **Select Date Range and Time**:
 
-On the **Book USRP Resources** page:
+* **USRP Selection**: choose **Single USRP** or **Multiple USRPs**.
+* Pick a **From Date** and **To Date**.
+* Bookings are issued in fixed **4-hour time blocks**: 12 AM-4 AM, 4 AM-8 AM,
+  8 AM-12 PM, 12 PM-4 PM, 4 PM-8 PM, and 8 PM-12 AM (Eastern Time).
+* Your **project limit** is shown alongside the controls (e.g.,
+  ``1 of 3 USRPs currently reserved``).
 
-* Under **Select Date Range and Time**, use the calendar icons to pick a
-  **From Date** and **To Date**.
-* Scroll down to the **Available USRPs** section. Devices available for
-  the selected dates appear as **green boxes**.
-* Click the specific USRP unit you want to reserve (e.g., ``node 131``).
+Scroll to **Available USRPs**. Nodes are arranged by their physical row/radio
+position, each tile showing the node number, model (e.g., ``X310`` or
+``N310``), and a **Book** action. Tiles are colour-coded:
 
+* **Green** - Available.
+* **Yellow** - Partially Available (some slots in the range are taken).
+* **Red** - Fully Booked.
+* **Grey** - Disabled or under Maintenance.
 
-1.5 Configure and Confirm Your Booking
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Click **Book** on an available node to open its reservation dialog.
 
-A booking configuration window will pop up:
+Configure the Cellular Plan and Confirm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Under **Select Time Slot**, click the 4-hour block you need
-  (e.g., 4:00 PM – 8:00 PM).
-* Confirm your **OpenStack project name** in the dropdown.
-* Open **Select Frequency Band** and choose the operating frequency for
-  your experiment (e.g., ``ISM: 2400–2483.5 MHz``).
-* Tick the **I agree to the Acceptable Use Policy** checkbox.
-* Click the green **Book USRP** button (bottom right).
-* A **Reservation confirmed** screen will summarize the booking. Review
-  the details and click **Close**.
+The **Book USRP <id>** dialog opens a **Cellular plan** form. Only FCC-safe,
+bookable bands are shown.
 
-.. tip::
+* **Radio standard**: e.g., ``5G NR`` or ``LTE 4G``.
+* **Duplex mode**: ``TDD`` or ``FDD``.
+* **Band**: e.g., ``NR n78 (TDD)``.
+* **Bandwidth (MHz)**: up to ``20`` MHz (the SDR-based UE maximum).
+* **Carrier input**: choose **Downlink center frequency** or **Downlink
+  ARFCN**, then enter the value.
 
-   Slots are issued in 4-hour blocks. If you need a longer experiment,
-   book consecutive blocks on the same USRP node to avoid having to
-   re-flash or reconfigure between sessions.
+The backend calculates the uplink/downlink carrier ranges from the band,
+duplex mode, and bandwidth, enforces a 5 MHz guard band between users, and
+shows any occupied slices and free windows for the band.
 
-
-1.6 Managing and Cancelling Reservations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To view or cancel an existing reservation:
-
-* Click the **My Reservations** tab in the top navigation bar.
-* Locate the reservation in the active list.
-* To cancel, tick the checkbox on the far left of the reservation row.
-* Click the red **Delete Selected** button on the right.
-* In the confirmation pop-up, click the red **Cancel 1 Reservation**
-  button to finalize.
-
-The dashboard will then update to show **No Active Reservations**.
+* Tick **I agree to the Acceptable Use Policy**.
+* Click **Review Booking** to see the summary (project, USRP, dates, time,
+  radio plan, bandwidth, and computed downlink/uplink ranges).
+* Click **Confirm Booking**. A confirmation email is sent immediately.
 
 .. warning::
 
-   Cancellations are immediate and cannot be undone. If the slot is in
-   high demand, you may not be able to re-book the same node/time.
+   Operating outside the approved cellular plan, or changing radio settings
+   without approval, may result in a ban from using testbed devices. See the
+   Acceptable Use Policy for details.
+
+.. tip::
+
+   Need a longer experiment? Book consecutive 4-hour blocks on the same node.
+   For several radios at once, use **Multiple USRPs** in the selection step.
+
+Managing Reservations (View, Cancel, Change)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Open the **My Reservations** tab to manage active bookings. Each row lists the
+Booking ID, USRP, project, band, start/end time, status, and **Port**. Ports
+are created automatically when the reservation starts; until then the Port
+column shows **Pending** with an **Attach guide** link. Once active, attach the
+port to your instance following the SDR network configuration steps below.
+
+* **Cancel**: tick the reservation's checkbox, then click **Cancel selected**
+  (only possible before the reservation starts).
+* **Request a change**: click the calendar action icon to open **Request
+  Reservation Change**. Set **Request type** (e.g., ``Modify time``), enter the
+  **Proposed start**/**Proposed end** and a **Reason**, then **Submit
+  Request**.
 
 
-2. Launch Procedure (Radio VM)
-------------------------------
+Launch Procedure (Radio VM)
+---------------------------
 
 Once your USRP is booked, launch the radio host instance:
 
-* Navigate to the **Project → Compute → Overview** dashboard.
-* Click the **Instances** tab, then click **Launch Instance**.
+* Navigate to **Project → Compute → Instances** and click **Launch Instance**.
 * **Details**: Enter an Instance Name. Set the Availability Zone to
   ``radio``.
-* **Source**: Choose **Instance Snapshot** from the dropdown menu.
-  Select your snapshot and click the **Up Arrow (↑)**.
+* **Source**: Choose **Instance Snapshot** from the dropdown menu (or a
+  **Volume** you created). Select your source and click the **Up Arrow (↑)**.
 * **Flavor**: Choose an appropriate radio flavor and click the
   **Up Arrow (↑)**.
-* **Networks**: Allocate the required network
-  (e.g., ``Int/External-Network-Matrix25``).
+* **Networks**: Allocate your own network, ``external-network-<firstname>``.
 * **Security Groups**: Allocate the ``default`` security group.
 * **Launch**: Click **Launch Instance** and wait for the status to change
   to ``Active``.
 
+Once active, set up :ref:`terminal-access`, then continue with the SDR network
+configuration below.
 
-5. Terminal Access & SDR Network Configuration
-----------------------------------------------
+
+SDR Network Configuration
+-------------------------
 
 Because the USRP nodes exist on an isolated private network, you must manually
 attach the radio network to your instance and configure the internal routing
-before you can interact with the SDR.
+before you can interact with the SDR. Connect to the instance over
+:ref:`ZeroTier <terminal-access>` first.
 
-.. important::
-
-   Terminal access to the radio host is over **ZeroTier**, not the floating
-   IP. Make sure the instance has joined the project's ZeroTier network and
-   that UDP port ``9993`` is allowed in the ``default`` security group (see
-   :ref:`Common Post-Launch Procedures → Network Connectivity & Security
-   <network-connectivity>`).
-
-**Step A: Attach the USRP Interface**
+Step A: Attach the USRP Interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. In the OpenStack dashboard, navigate to **Project → Compute → Instances**.
 2. Click the dropdown arrow next to your Radio instance and select
@@ -438,31 +609,18 @@ before you can interact with the SDR.
    dropdown list.
 5. Click **Attach Interface**.
 6. Check your Instances list. Your VM should now display two IP addresses
-   (e.g., your Demo Network IP and your USRP Network IP, such as
+   (e.g., your network IP and your USRP Network IP, such as
    ``192.168.110.7``). Take note of this USRP IP address.
 
-**Step B: Configure Netplan (Terminal)**
+Step B: Configure Netplan
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Connect to the instance over ZeroTier by SSHing to its ZeroTier-assigned IP
-(Username: ``ubuntu``, Password: ``CCI@2025``). Do not use the floating IP for
-terminal access.
-
-.. code-block:: bash
-
-   ssh ubuntu@[ZeroTier_IP]
-
-.. note::
-
-   If you cannot reach the ZeroTier IP, confirm both your machine and the
-   instance have joined the project's ZeroTier network and been authorized,
-   and that UDP port ``9993`` is open in the ``default`` security group.
-
-Once connected, configure Ubuntu to recognize the newly attached radio
-interface (usually ``ens4``).
+Connected over ZeroTier, configure Ubuntu to recognize the newly attached
+radio interface (usually ``ens4``).
 
 1. Run ``ip a`` to verify the new interface name. You should see ``ens4``
    listed without an IP address.
-2. Open the network configuration file. The filename may vary — run
+2. Open the network configuration file. The filename may vary - run
    ``ls /etc/netplan/`` first, as it is often ``50-cloud-init.yaml`` on
    cloud images:
 
@@ -490,11 +648,12 @@ interface (usually ``ens4``).
 
       sudo netplan apply
 
-**Step C: SDR Verification**
+Step C: SDR Verification
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once the network is applied, verify connectivity to the USRP unit. The SDR is
 typically located at the ``.2`` address of your subnet (e.g., if your IP is
-``192.168.110.7``, the radio is at ``192.168.110.2``) — confirm the exact
+``192.168.110.7``, the radio is at ``192.168.110.2``) - confirm the exact
 address for your booked node.
 
 .. code-block:: bash
@@ -504,13 +663,49 @@ address for your booked node.
 
 .. note::
 
-   ``uhd_find_devices`` should list the USRP unit you reserved in
-   :ref:`Section 1 <radio-deployment>`. If it returns nothing, confirm your
-   booking is still active in the **My Reservations** tab of the SDR Booking
-   app, and verify that your netplan configuration has the correct IP address.
+   ``uhd_find_devices`` should list the USRP unit you reserved in the
+   :ref:`booking section <radio-deployment>`. If it returns nothing, confirm
+   your booking is still active in the **My Reservations** tab of the booking
+   portal, and verify that your netplan configuration has the correct IP
+   address.
 
 
-=============================
+.. _portal-tabs:
+
+Booking Portal: Other Tabs
+==========================
+
+Besides booking USRPs, the portal at https://authentik.ccixgtestbed.org/
+exposes three more tabs for requesting capacity and checking status.
+
+USRP & GPU Access
+-----------------
+
+Use this tab to request additional radio or GPU capacity for your project
+beyond your current allocation. Fill in the request form and submit it; your
+submissions and their status appear under **My USRP Requests** / **My GPU
+Requests**. This is also where you request the GPU flavor referenced in
+:ref:`GPU Instance Deployment <gpu-deployment>`.
+
+OpenStack Quota
+---------------
+
+Use this tab to request increases to your OpenStack compute quota (instances,
+VCPUs, RAM, volumes). The form shows recommended values and deployment
+guidance, and your prior requests appear in the request history. Your current
+limits are visible on the OpenStack **Overview** tab (see
+:ref:`Before You Start <before-you-start>`).
+
+Resources
+---------
+
+Use this tab to check live testbed status: GPU availability, maintenance
+windows (including any that overlap your selected booking range), operational
+notices, and links to the deployment guides.
+
+
+.. _common-post-launch:
+
 Common Post-Launch Procedures
 =============================
 
@@ -538,61 +733,37 @@ you must manually expand the storage:
 Network Connectivity & Security
 -------------------------------
 
-* **Security Rules**: Navigate to **Network → Security Groups** and click
-  **Manage Rules** for the ``default`` group. Add an **SSH** rule for the
-  ``0.0.0.0/0`` CIDR.
-* **Additional Protocols**: In the same ``default`` group, add any other
-  protocols your workload requires. For **ZeroTier** connectivity, add the
-  following rules:
+All terminal access is over ZeroTier (see :ref:`terminal-access`), so the
+``default`` security group only needs the rules that let ZeroTier and your
+workload through.
 
-  * **Custom UDP Rule** — Port ``9993`` (ZeroTier's default transport port).
-  * **All ICMP** — to allow ``ping`` for reachability checks across the
+* **ZeroTier transport**: Navigate to **Network → Security Groups** and click
+  **Manage Rules** for the ``default`` group. Add the following:
+
+  * **Custom UDP Rule** - Port ``9993`` (ZeroTier's default transport port).
+  * **All ICMP** - to allow ``ping`` for reachability checks across the
     ZeroTier network.
-  * Any application-specific ports your experiment needs (e.g., HTTP/HTTPS,
-    custom TCP/UDP ranges).
+
+* **SSH over ZeroTier**: Add an **SSH** (TCP ``22``) rule, but restrict the
+  CIDR to the project's ZeroTier subnet rather than ``0.0.0.0/0`` so the port
+  is not exposed to the public internet.
+* **Additional protocols**: Add any application-specific ports your experiment
+  needs (e.g., HTTP/HTTPS, custom TCP/UDP ranges).
 
 .. warning::
 
-   Allowing SSH from ``0.0.0.0/0`` exposes port 22 to the entire internet.
-   For long-running instances, restrict the CIDR to a known IP range or use
-   a key pair instead of password authentication.
-
-.. note::
-
-   For **terminal access**, you must connect over **ZeroTier**. Join the
-   project's ZeroTier network on both your machine and the instance, then SSH
-   to the instance's ZeroTier-assigned IP rather than exposing port 22 to the
-   public internet. ZeroTier needs UDP port ``9993`` open (see the rules
-   above) to establish its overlay connection.
+   Never open SSH to ``0.0.0.0/0``. There is no public access path in this
+   testbed - keep all access scoped to the ZeroTier overlay.
 
 
-Associating a Floating IP
--------------------------
+.. _volume-management:
 
-.. raw:: html
-
-   <div class="demo-videos">
-     <h3>How to Associate a Floating IP</h3>
-     <video controls preload="metadata" playsinline crossorigin="anonymous" width="640">
-       <source src="../_static/Floating-IP.mp4" type="video/mp4">
-       Your browser does not support the video tag.
-     </video>
-     <p><a href="../_static/Floating-IP.mp4">Download video</a></p>
-   </div>
-
-A floating IP gives your instance a routable address on the external network
-so you can reach it from outside the project.
-
-* Navigate to the **Instances** tab and open the **Actions** dropdown for your
-  instance, then select **Associate Floating IP**.
-* If no address is available, click the **+** button to **Allocate IP** from
-  the external pool (e.g., ``Int/External-Network-Matrix25``).
-* Select the floating IP and the instance **Port**, then click **Associate**.
-
-
-=================
 Volume Management
 =================
+
+Volumes let you boot instances from persistent storage and keep data across
+rebuilds. You can select a volume as the boot **Source** in any launch
+procedure.
 
 Creating a Volume
 -----------------
@@ -631,30 +802,3 @@ Attaching a Volume (Connecting to an Instance)
 4. Choose the target instance from the dropdown menu where you want the
    volume mounted.
 5. Click **Attach Volume** to link the storage to your virtual machine.
-
-
-==========================================
-Important Points to Consider in OpenStack
-==========================================
-
-* **Watch your quotas**: Instance, VCPU, RAM, and volume limits are shown on
-  the **Overview** tab. New instances will fail to create once a quota is hit.
-* **Create your network first**: A new project has no usable network until you
-  create your own network and router (see *Setting Up Your Router and
-  Network*).
-* **Choose the right availability zone**: ``compute`` for CPU workloads,
-  ``gpu`` for GPU/AI workloads, and ``radio`` for SDR/wireless workloads.
-* **Persistent vs ephemeral storage**: Set **Create New Volume = Yes** to keep
-  data across rebuilds; ephemeral disks are wiped when the instance is
-  deleted.
-* **Secure your access**: Avoid leaving SSH open to ``0.0.0.0/0``. Use
-  **ZeroTier** for terminal access and restrict security-group CIDRs to known
-  ranges or use key-pair authentication.
-* **GPU flavors need approval**: Request the GPU flavor from the admin team
-  before attempting a GPU launch, or the launch will fail.
-* **Book USRPs first**: A radio VM cannot reach an SDR unit that has not been
-  reserved for the matching time slot.
-* **Change default credentials**: Update the default snapshot password
-  (``CCI@2025``) on first login for any production workload.
-* **Free up resources**: Delete unused instances, volumes, and floating IPs to
-  stay within quota and free them for other project members.

@@ -24,16 +24,66 @@ Once your submission is reviewed and approved, the Administrative team will send
 containing your access instructions. All CCI xG Testbed resources are centralized through our 
 Single Sign-On (SSO) portal.
 
-**How to Access Your Dashboard:**
+How to Access Your Dashboard
+----------------------------
 
-1. **Navigate to the Portal**: Go to `https://authentik.ccixgtestbed.org <https://authentik.ccixgtestbed.org>`_.
-2. **Sign In**: You can authenticate using **CILogon** to securely sign in using your university or institutional identity provider.
-3. **Select Your Resources**: After successfully logging in, you will be taken to the "My applications" dashboard. This central hub displays tiles for all the specific environments, tools, and project platforms allocated to your account. Simply click on any tile to launch that resource.
+1. **Open the Portal**
 
-For detailed information on navigating the portal and utilizing your resources, please refer to our 
-:doc:`Portal Access Guide <portal_access>`.
+   You can access the CCI xG Testbed portal in either of the following ways:
 
-.. attention:: When completing the initial request form, be specific about your project requirements in the "Purpose of CCI xG Testbed Usage" field to ensure the appropriate resource tiles are allocated to your dashboard.
+   * Go to the CCI xG Testbed website and select **User → Login** from the top navigation menu.
+   * Or directly open the portal at `CCI xG Testbed Portal <https://authentik.ccixgtestbed.org>`_.
+
+   .. figure:: /_static/1.png
+      :alt: CCI xG Testbed website showing the User Login menu
+      :width: 60%
+      :align: center
+
+      Accessing the portal from the CCI xG Testbed website.
+
+2. **Sign In**
+
+   On the login page, select **Continue with CILogon**. CILogon allows you to securely authenticate using your university or institutional identity provider.
+
+   .. figure:: /_static/2.png
+      :alt: CCI xG Testbed login page with CILogon option
+      :width: 60%
+      :align: center
+
+      Login page with the CILogon authentication option.
+
+3. **Select Your Institution**
+
+   On the CILogon page, choose your identity provider, such as **Virginia Tech**, and click **Log On**.
+
+   .. figure:: /_static/3.png
+      :alt: CILogon identity provider selection page
+      :width: 60%
+      :align: center
+
+      Selecting an institutional identity provider in CILogon.
+
+4. **Approve Access**
+
+   CILogon may ask you to approve the release of basic account information, such as your name, email address, username, and institutional affiliation. Review the information and continue only if you approve.
+
+5. **Accept the Usage Policy**
+
+   On your first login, you may be asked to read and accept the CCI xG Testbed Acceptable Use Policy. Check the agreement box and click **Continue**.
+
+6. **Open Your Dashboard**
+
+   After successful login, you will be redirected to the **My Applications** dashboard. This dashboard displays the resource tiles assigned to your account. Click any available tile to launch the corresponding environment, tool, or project platform.
+
+.. note::
+   For detailed information on navigating the portal and using assigned resources, refer to the
+   :doc:`Portal Access Guide <portal_access>`.
+
+.. attention::
+   When completing the initial request form, be specific about your project requirements in the
+   **Purpose of CCI xG Testbed Usage** field. This helps ensure that the appropriate resource
+   tiles are allocated to your dashboard.
+
 
 CCI Dashboard and Experiment Environment
 =======================================
